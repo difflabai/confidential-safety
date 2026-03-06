@@ -4,6 +4,7 @@ use serde::Deserialize;
 
 /// Server configuration, loaded from environment variables or command-line arguments.
 #[derive(Debug, Clone, Deserialize)]
+#[allow(dead_code)]
 pub struct ServerConfig {
     /// Address to bind the HTTP server to.
     #[serde(default = "default_bind_addr")]

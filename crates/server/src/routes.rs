@@ -16,6 +16,7 @@ use confidential_safety_inference::middleware::InferenceSafetyMiddleware;
 use crate::config::ServerMode;
 
 /// Shared application state.
+#[allow(dead_code)]
 pub struct AppState {
     pub pipeline: InferenceSafetyMiddleware,
     pub policy: PolicyConfig,
@@ -132,17 +133,17 @@ impl From<ExternalVerdict> for ExternalVerdictResponse {
     fn from(v: ExternalVerdict) -> Self {
         Self {
             verdict_id: v.verdict_id.to_string(),
-            stage: serde_json::to_value(&v.stage)
+            stage: serde_json::to_value(v.stage)
                 .unwrap_or_default()
                 .as_str()
                 .unwrap_or("unknown")
                 .to_string(),
-            risk_category: serde_json::to_value(&v.risk_category)
+            risk_category: serde_json::to_value(v.risk_category)
                 .unwrap_or_default()
                 .as_str()
                 .unwrap_or("unknown")
                 .to_string(),
-            action: serde_json::to_value(&v.action)
+            action: serde_json::to_value(v.action)
                 .unwrap_or_default()
                 .as_str()
                 .unwrap_or("unknown")
@@ -392,29 +393,29 @@ async fn agent_turn(
     // Run Tier 1 on the message
     let input_decision = state.pipeline.evaluate_input(prompt).await;
 
-    if let Ok(ref decision) = input_decision {
-        if !decision.is_allowed() {
-            let verdict = ExternalVerdict {
-                verdict_id: Uuid::now_v7(),
-                stage: confidential_safety_core::verdict::PipelineStage::InputClassify,
-                risk_category: RiskCategory::None,
-                action: SafetyAction::Block,
-                policy_version: state.policy_version.clone(),
-                timestamp: time::OffsetDateTime::now_utc(),
-            };
-            return (
-                StatusCode::from_u16(451).unwrap_or(StatusCode::BAD_REQUEST),
-                Json(serde_json::to_value(SafetyBlockedResponse {
-                    error: SafetyBlockedError {
-                        message: "Request blocked by safety policy".into(),
-                        error_type: "safety_block".into(),
-                        code: "content_policy_violation".into(),
-                    },
-                    safety: verdict.into(),
-                })
-                .unwrap()),
-            );
-        }
+    if let Ok(ref decision) = input_decision
+        && !decision.is_allowed()
+    {
+        let verdict = ExternalVerdict {
+            verdict_id: Uuid::now_v7(),
+            stage: confidential_safety_core::verdict::PipelineStage::InputClassify,
+            risk_category: RiskCategory::None,
+            action: SafetyAction::Block,
+            policy_version: state.policy_version.clone(),
+            timestamp: time::OffsetDateTime::now_utc(),
+        };
+        return (
+            StatusCode::from_u16(451).unwrap_or(StatusCode::BAD_REQUEST),
+            Json(serde_json::to_value(SafetyBlockedResponse {
+                error: SafetyBlockedError {
+                    message: "Request blocked by safety policy".into(),
+                    error_type: "safety_block".into(),
+                    code: "content_policy_violation".into(),
+                },
+                safety: verdict.into(),
+            })
+            .unwrap()),
+        );
     }
 
     // Process tool calls (stub: all allowed in mock mode)

@@ -34,17 +34,17 @@ impl Gate for OutputGate {
         let mut worst: Option<(&ClassifierFinding, &RiskCategoryAction)> = None;
 
         for finding in findings {
-            if let Some(cat_config) = policy.get_category(finding.category) {
-                if finding.confidence >= cat_config.output_threshold {
-                    match &worst {
-                        Some((prev_finding, _)) => {
-                            if finding.confidence > prev_finding.confidence {
-                                worst = Some((finding, &cat_config.action));
-                            }
-                        }
-                        None => {
+            if let Some(cat_config) = policy.get_category(finding.category)
+                && finding.confidence >= cat_config.output_threshold
+            {
+                match &worst {
+                    Some((prev_finding, _)) => {
+                        if finding.confidence > prev_finding.confidence {
                             worst = Some((finding, &cat_config.action));
                         }
+                    }
+                    None => {
+                        worst = Some((finding, &cat_config.action));
                     }
                 }
             }

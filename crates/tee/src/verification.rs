@@ -109,13 +109,13 @@ impl VerdictVerifier {
         }
 
         // Step 6: If we have an expected address for this classifier, check it
-        if let Some(expected) = self.expected_addresses.get(&signed.payload.classifier_id) {
-            if &derived_address != expected {
-                return Err(VerificationError::AddressMismatch {
-                    expected: signing::hex_encode(expected),
-                    actual: signing::hex_encode(&derived_address),
-                });
-            }
+        if let Some(expected) = self.expected_addresses.get(&signed.payload.classifier_id)
+            && &derived_address != expected
+        {
+            return Err(VerificationError::AddressMismatch {
+                expected: signing::hex_encode(expected),
+                actual: signing::hex_encode(&derived_address),
+            });
         }
 
         Ok(signed.payload.clone())
