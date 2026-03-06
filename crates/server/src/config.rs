@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 
+use confidential_safety_provider::config::ProviderConfig;
 use serde::Deserialize;
 
 /// Server configuration, loaded from environment variables or command-line arguments.
@@ -27,6 +28,10 @@ pub struct ServerConfig {
     /// Jurisdiction code for selecting designated authorities (e.g., "US", "UK").
     #[serde(default = "default_jurisdiction")]
     pub jurisdiction: String,
+
+    /// Inference provider configuration. If absent, uses mock provider.
+    #[serde(default)]
+    pub provider: Option<ProviderConfig>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
@@ -61,6 +66,7 @@ impl Default for ServerConfig {
             expected_model_hash: None,
             mode: default_mode(),
             jurisdiction: default_jurisdiction(),
+            provider: None,
         }
     }
 }

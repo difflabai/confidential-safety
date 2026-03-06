@@ -61,12 +61,27 @@ async fn main() {
         tracing::info!("Model hash verified.");
     }
 
+    // Build the inference provider
+    let provider_config = config
+        .provider
+        .clone()
+        .unwrap_or_default();
+
+    let provider = confidential_safety_provider::build_provider(&provider_config)
+        .expect("Failed to build inference provider");
+
+    tracing::info!(
+        provider = provider.name(),
+        "Inference provider initialized"
+    );
+
     // Build the safety pipeline (with no classifiers in default mode -- add via config)
     let audit_log = Arc::new(Mutex::new(AuditLog::new()));
     let pipeline = InferenceSafetyMiddleware::new(vec![], policy.clone(), audit_log);
 
     let state = Arc::new(AppState {
         pipeline,
+        provider,
         policy: policy.clone(),
         mode: config.mode,
         policy_hash,

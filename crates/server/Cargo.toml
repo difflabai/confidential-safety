@@ -10,6 +10,7 @@ confidential-safety-classifier = { workspace = true }
 confidential-safety-inference = { workspace = true }
 confidential-safety-agent = { workspace = true }
 confidential-safety-tee = { workspace = true }
+confidential-safety-provider = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 axum = { workspace = true }
