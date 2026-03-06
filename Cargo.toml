@@ -1,0 +1,66 @@
+[workspace]
+members = [
+    "crates/core",
+    "crates/classifier",
+    "crates/inference",
+    "crates/agent",
+    "crates/tee",
+    "crates/server",
+]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+
+[workspace.dependencies]
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "0.8"
+
+# Crypto
+sha2 = "0.10"
+k256 = { version = "0.13", features = ["ecdsa"] }
+age = { version = "0.11", features = ["armor"] }
+
+# IDs and time
+uuid = { version = "1", features = ["v7", "serde"] }
+time = { version = "0.3", features = ["serde", "serde-human-readable"] }
+
+# Pattern matching
+aho-corasick = "1"
+
+# Async
+tokio = { version = "1", features = ["full"] }
+async-trait = "0.1"
+futures = "0.3"
+
+# HTTP
+axum = { version = "0.8", features = ["json"] }
+reqwest = { version = "0.12", features = ["json", "rustls-tls"], default-features = false }
+tower = "0.5"
+tower-http = { version = "0.6", features = ["trace", "cors"] }
+
+# TLS
+rustls = "0.23"
+tokio-rustls = "0.26"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+
+# Error handling
+thiserror = "2"
+
+# Testing
+rand = "0.9"
+tempfile = "3"
+
+# Internal crates
+confidential-safety-core = { path = "crates/core" }
+confidential-safety-classifier = { path = "crates/classifier" }
+confidential-safety-inference = { path = "crates/inference" }
+confidential-safety-agent = { path = "crates/agent" }
+confidential-safety-tee = { path = "crates/tee" }

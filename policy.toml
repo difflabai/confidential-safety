@@ -1,0 +1,125 @@
+# Confidential Safety Policy
+# This file is baked into the Docker image and becomes part of the attestation measurement.
+# Any change to this file changes the image hash, which changes the attestation report.
+
+[policy]
+version = "1.0.0"
+policy_id = "confidential-safety-default-2026"
+hash_algorithm = "sha256"
+
+# --- Risk Categories ---
+
+[[risk_categories]]
+name = "BIOTERROR"
+classifiers = [
+    { type = "pattern_match", pattern_file = "bioterror.txt" },
+]
+input_threshold = 0.85
+output_threshold = 0.90
+action = "BLOCK"
+mandatory_disclosure_threshold = 0.999
+
+[[risk_categories]]
+name = "CSAM"
+classifiers = [
+    { type = "pattern_match", pattern_file = "csam.txt" },
+]
+input_threshold = 0.70
+output_threshold = 0.70
+action = "BLOCK"
+mandatory_disclosure_threshold = 0.999
+
+[[risk_categories]]
+name = "CYBER_ATTACK"
+classifiers = [
+    { type = "pattern_match", pattern_file = "cyber.txt" },
+]
+input_threshold = 0.80
+output_threshold = 0.85
+action = "BLOCK"
+
+[[risk_categories]]
+name = "CBRN"
+classifiers = [
+    { type = "pattern_match", pattern_file = "cbrn.txt" },
+]
+input_threshold = 0.85
+output_threshold = 0.90
+action = "BLOCK"
+mandatory_disclosure_threshold = 0.999
+
+[[risk_categories]]
+name = "WEAPONS"
+classifiers = [
+    { type = "pattern_match", pattern_file = "weapons.txt" },
+]
+input_threshold = 0.90
+output_threshold = 0.90
+action = "BLOCK"
+
+# --- Agent Policy ---
+
+[agent_policy]
+max_suspicious_actions = 3
+trajectory_window_turns = 20
+restricted_tools = ["shell_exec", "raw_network", "file_delete", "privilege_escalate"]
+
+[agent_policy.capability_budget]
+network_requests = 10
+file_writes = 5
+file_reads = 50
+shell_commands = 0
+api_calls = 20
+
+[[agent_policy.attack_chain_patterns]]
+name = "recon_exploit"
+sequence = ["network_scan", "port_probe", "exploit_*"]
+risk_score = 0.9
+
+[[agent_policy.attack_chain_patterns]]
+name = "data_exfiltration"
+sequence = ["file_read", "encode_*", "network_request"]
+risk_score = 0.7
+
+[[agent_policy.attack_chain_patterns]]
+name = "privilege_escalation"
+sequence = ["enumerate_*", "credential_*", "privilege_*"]
+risk_score = 0.95
+
+# --- Designated Authorities ---
+
+[[designated_authorities]]
+name = "NCMEC"
+categories = ["CSAM"]
+jurisdiction = "US"
+public_key = "age1placeholder-ncmec-public-key"
+reporting_endpoint = "https://report.ncmec.org/api/v1/esp"
+
+[[designated_authorities]]
+name = "FBI_WMD"
+categories = ["BIOTERROR", "CBRN"]
+jurisdiction = "US"
+public_key = "age1placeholder-fbi-wmd-public-key"
+reporting_endpoint = "https://report.fbi.gov/api/v1/wmd"
+
+[[designated_authorities]]
+name = "CISA"
+categories = ["CYBER_ATTACK"]
+jurisdiction = "US"
+public_key = "age1placeholder-cisa-public-key"
+reporting_endpoint = "https://report.cisa.gov/api/v1"
+
+[[designated_authorities]]
+name = "IWF"
+categories = ["CSAM"]
+jurisdiction = "UK"
+public_key = "age1placeholder-iwf-public-key"
+reporting_endpoint = "https://report.iwf.org.uk/api/v1"
+
+# --- Provider Safety Service ---
+
+[provider_service]
+verdict_endpoint = "https://safety.provider.example/api/v1/verdicts"
+disclosure_relay_endpoint = "https://safety.provider.example/api/v1/disclosures"
+max_retries = 3
+retry_backoff_ms = 1000

@@ -1,0 +1,14 @@
+# Layer 3a: Inference Mode
+# Builds on the base TEE runtime. Serves the inference safety pipeline
+# with an OpenAI-compatible API.
+
+FROM confidential-safety-base:latest AS inference
+
+# Model weights are mounted as a volume, not baked into the image.
+# The server verifies model hash at startup.
+VOLUME ["/models"]
+
+ENV RUST_LOG=info
+ENV SERVER_MODE=inference
+
+ENTRYPOINT ["confidential-safety-server", "--mode=inference"]
