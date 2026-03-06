@@ -1,0 +1,12 @@
+# Layer 3b: Agent Mode
+# Builds on the base TEE runtime. Serves the agent safety pipeline
+# with session management, action validation, and trajectory analysis.
+
+FROM confidential-safety-base:latest AS agent
+
+VOLUME ["/models"]
+
+ENV RUST_LOG=info
+ENV SERVER_MODE=agent
+
+ENTRYPOINT ["confidential-safety-server", "--mode=agent"]
