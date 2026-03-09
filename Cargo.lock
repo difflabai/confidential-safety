@@ -261,6 +261,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "confidential-safety-provider"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "axum",
+ "confidential-safety-core",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "confidential-safety-server"
 version = "0.1.0"
 dependencies = [
@@ -269,6 +284,7 @@ dependencies = [
  "confidential-safety-classifier",
  "confidential-safety-core",
  "confidential-safety-inference",
+ "confidential-safety-provider",
  "confidential-safety-tee",
  "reqwest",
  "rustls",

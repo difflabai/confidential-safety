@@ -5,6 +5,7 @@ members = [
     "crates/inference",
     "crates/agent",
     "crates/tee",
+    "crates/provider",
     "crates/server",
 ]
 resolver = "2"
@@ -64,3 +65,4 @@ confidential-safety-classifier = { path = "crates/classifier" }
 confidential-safety-inference = { path = "crates/inference" }
 confidential-safety-agent = { path = "crates/agent" }
 confidential-safety-tee = { path = "crates/tee" }
+confidential-safety-provider = { path = "crates/provider" }

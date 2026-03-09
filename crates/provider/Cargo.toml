@@ -1,0 +1,19 @@
+[package]
+name = "confidential-safety-provider"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+confidential-safety-core = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+reqwest = { workspace = true }
+async-trait = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true }
+axum = { workspace = true }

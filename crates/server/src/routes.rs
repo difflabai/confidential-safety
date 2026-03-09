@@ -12,6 +12,7 @@ use confidential_safety_core::pipeline::{GateDecision, InferencePipeline, Sessio
 use confidential_safety_core::policy::PolicyConfig;
 use confidential_safety_core::verdict::{ExternalVerdict, RiskCategory, SafetyAction};
 use confidential_safety_inference::middleware::InferenceSafetyMiddleware;
+use confidential_safety_provider::Provider;
 
 use crate::config::ServerMode;
 
@@ -19,6 +20,7 @@ use crate::config::ServerMode;
 #[allow(dead_code)]
 pub struct AppState {
     pub pipeline: InferenceSafetyMiddleware,
+    pub provider: Box<dyn Provider>,
     pub policy: PolicyConfig,
     pub mode: ServerMode,
     pub policy_hash: [u8; 32],
@@ -238,12 +240,57 @@ async fn chat_completions(
         );
     }
 
-    // Stage 3: Mock inference (in production, this calls vLLM)
-    let model = request.model.unwrap_or_else(|| "mock-model".into());
-    let mock_completion = format!("This is a mock response from {model}.");
+    // Stage 3: Provider inference
+    let model = request.model.unwrap_or_else(|| "default-model".into());
+    let provider_request = confidential_safety_provider::ChatCompletionRequest {
+        model: model.clone(),
+        messages: request
+            .messages
+            .iter()
+            .map(|m| confidential_safety_provider::ChatMessage {
+                role: m.role.clone(),
+                content: m.content.clone(),
+            })
+            .collect(),
+        temperature: None,
+        max_tokens: None,
+        stop: None,
+    };
+
+    let provider_response = match state.provider.chat_completion(&provider_request).await {
+        Ok(response) => response,
+        Err(e) => {
+            tracing::error!(error = %e, "provider call failed");
+            let verdict = ExternalVerdict {
+                verdict_id: Uuid::now_v7(),
+                stage: confidential_safety_core::verdict::PipelineStage::OutputClassify,
+                risk_category: RiskCategory::None,
+                action: SafetyAction::Block,
+                policy_version: state.policy_version.clone(),
+                timestamp: time::OffsetDateTime::now_utc(),
+            };
+            return (
+                StatusCode::BAD_GATEWAY,
+                Json(
+                    serde_json::to_value(SafetyBlockedResponse {
+                        error: SafetyBlockedError {
+                            message: format!("Inference provider error: {e}"),
+                            error_type: "provider_error".into(),
+                            code: "provider_unavailable".into(),
+                        },
+                        safety: verdict.into(),
+                    })
+                    .unwrap(),
+                ),
+            );
+        }
+    };
+
+    let model = provider_response.model;
+    let completion = provider_response.content;
 
     // Stage 4-5: Output classification + gate
-    let output_decision = match state.pipeline.evaluate_output(&mock_completion).await {
+    let output_decision = match state.pipeline.evaluate_output(&completion).await {
         Ok(decision) => decision,
         Err(e) => {
             let verdict = ExternalVerdict {
@@ -319,7 +366,7 @@ async fn chat_completions(
                 index: 0,
                 message: ChatMessage {
                     role: "assistant".into(),
-                    content: mock_completion,
+                    content: completion,
                 },
                 finish_reason: "stop".into(),
             }],
